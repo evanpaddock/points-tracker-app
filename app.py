@@ -16,14 +16,20 @@ def spend_points(points_to_spend):
     total_points -= points_to_spend
 
     message = []
+    transactions_copy = transactions
+    for item in transactions_copy:
+        item["timestamp"] = datetime.strptime(item["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
+
     transactions_sorted_by_timestamp = sorted(
-        transactions, key=itemgetter("timestamp"), reverse=True
+        transactions_copy, key=itemgetter("timestamp")
     )
+
     index = 0
-    while points_to_spend != 0 and index < len(transactions):
+
+    while points_to_spend != 0:
         payer_points = transactions_sorted_by_timestamp[index]["points"]
         payer = transactions_sorted_by_timestamp[index]["payer"]
-        if points_to_spend < payer_points:
+        if payer_points < points_to_spend:
             remainder = payer_points - points_to_spend
             points = -transactions_sorted_by_timestamp[index]["points"]
         else:
@@ -34,10 +40,9 @@ def spend_points(points_to_spend):
         message.append({"payer": payer, "points": points})
 
         transactions_sorted_by_timestamp[index]["points"] = remainder
-        transactions = transactions_sorted_by_timestamp
         index += 1
 
-        return message
+    return message
 
 
 def add_points(payer, points_to_add, timestamp):
@@ -84,9 +89,10 @@ def add():
         data = json.loads(request.form["text"])
         payer = data["payer"]
         points = int(data["points"])
-        timestamp = datetime.fromtimestamp(data["timestamp"])
+        timestamp = data["timestamp"]
 
-        add_points(payer, points, timestamp)
+        if points > 0:
+            add_points(payer, points, timestamp)
 
         return render_template("index.html"), 200
     except Exception as e:
