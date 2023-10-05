@@ -33,7 +33,6 @@ def spend_points(points_to_spend):
 
 
 def add_points(payer, points_to_add, timestamp):
-    # !Needs to check if payer exists and add to that
     global total_points
     total_points += points_to_add
 
@@ -41,6 +40,8 @@ def add_points(payer, points_to_add, timestamp):
         {"payer": payer, "points": points_to_add, "timestamp": timestamp}
     )
 
+def get_points_by_payer():
+    pass
 
 # A route for the root URL path
 @app.route("/", methods=["GET"])
@@ -84,7 +85,8 @@ def spend():
 # Route to spend points
 @app.route("/balance", methods=["GET"])
 def balance():
-    return jsonify(transactions), 200
+    message = get_points_by_payer()
+    return message, 200
 
 
 if __name__ == "__main__":
