@@ -2,21 +2,19 @@ from flask import Flask, jsonify, request, render_template, redirect, url_for
 from operator import itemgetter
 import json
 
-app = Flask(__name__)
-
 # Each transaction will be in a format similar to {"payer": "DANNON", "points": 5000, "timestamp": "2020-11-02T14:00:00Z"}
 transactions = []
+total_points = 0
 
-
-def return_index_if_payer_exists(payer):
-    for index, item in enumerate(transactions):
-        if item["payer"] == payer:
-            return index
-    return -1
+app = Flask(__name__)
 
 
 def spend_points(points_to_spend):
-    # !Untested yet
+    global total_points
+
+    total_points -= points_to_spend
+
+    message = []
     transactions_sorted_by_timestamp = sorted(transactions, key=itemgetter("timestamp"))
     index = 0
     while points_to_spend != 0 and index < len(transactions):
@@ -26,6 +24,9 @@ def spend_points(points_to_spend):
         else:
             points_to_spend -= points
             remainder = 0
+        payer = transactions_sorted_by_timestamp[index]
+        points = -transactions_sorted_by_timestamp[points]
+        message.append({"payer": payer, "points": points})
 
         transactions_sorted_by_timestamp[index]["points"] = remainder
         index += 1
@@ -33,18 +34,15 @@ def spend_points(points_to_spend):
 
 def add_points(payer, points_to_add, timestamp):
     # !Needs to check if payer exists and add to that
+    global total_points
+    total_points += points_to_add
 
-    index = return_index_if_payer_exists(payer)
-
-    if index == -1:
-        transactions.append(
-            {"payer": payer, "points": points_to_add, "timestamp": timestamp}
-        )
-    else:
-        transactions[index]["points"] += points_to_add
+    transactions.append(
+        {"payer": payer, "points": points_to_add, "timestamp": timestamp}
+    )
 
 
-# Define a route for the root URL path
+# A route for the root URL path
 @app.route("/", methods=["GET"])
 def welcome():
     return render_template("index.html")
@@ -59,8 +57,6 @@ def add():
         points = int(data["points"])
         timestamp = data["timestamp"]
 
-        print("Here")
-
         add_points(payer, points, timestamp)
 
         return render_template("index.html"), 200
@@ -71,12 +67,16 @@ def add():
 # Route to spend points
 @app.route("/spend", methods=["POST"])
 def spend():
+    global total_points
     try:
         data = json.loads(request.form["text"])
 
         points = int(data["points"])
-        spend_points(points)
-        return render_template("index.html"), 200
+        if points > total_points:
+            message = "You don't have enough points"
+            return message, 400
+        message = spend_points(points)
+        return message, 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
