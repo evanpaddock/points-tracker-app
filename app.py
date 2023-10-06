@@ -59,18 +59,23 @@ def add_points(payer, points_to_add, timestamp):
     )
 
 
-def get_points_by_payer():
-    global transactions
+def get_points_by_payer(transactions):
+    # sorts transactions by the payer field
     transactions.sort(key=itemgetter("payer"))
+
+    # new array to store points spent by payer
     points_by_payer = []
 
     current_payer = transactions[0]["payer"]
     current_total_points = transactions[0]["points"]
+
     index = 1
 
     while index < len(transactions):
+        # if same payer as previous, adds to total
         if current_payer == transactions[index]["payer"]:
             current_total_points += transactions[index]["points"]
+        # else appends payer and total to points_by_payer array and sets new payer and total points
         else:
             points_by_payer.append(
                 {"payer": current_payer, "points": current_total_points}
@@ -87,13 +92,14 @@ def get_points_by_payer():
 # A route for the root URL path
 @app.route("/", methods=["GET"])
 def welcome():
+    # Renders index.html file for ease of use
     return render_template("index.html")
 
 
 # Route to add transactions
 @app.route("/add", methods=["POST"])
 def add():
-    # Example Transactions to add
+    # Example Transactions to add for ease of tester
     # { "payer": "DANNON", "points": 300, "timestamp": "2022-10-31T10:00:00Z" }
     # { "payer": "UNILEVER", "points": 200, "timestamp": "2022-10-31T11:00:00Z" }
     # { "payer": "DANNON", "points": -200, "timestamp": "2022-10-31T15:00:00Z" }
@@ -109,6 +115,7 @@ def add():
         points = int(data["points"])
         timestamp = datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
 
+        # Only adds points if points are not negative
         if points > 0:
             add_points(payer, points, timestamp)
 
@@ -125,10 +132,14 @@ def spend():
         data = json.loads(request.form["data"])
 
         points = data["points"]
+
         if points > total_points:
             message = "You don't have enough points"
             return message, 400
-        message = spend_points(points)
+
+        # Message of points spent by payer
+        message = get_points_by_payer(spend_points(points))
+
         return message, 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -137,11 +148,13 @@ def spend():
 # Route to spend points
 @app.route("/balance", methods=["GET"])
 def balance():
+    global transactions
     if len(transactions) != 0:
-        message = get_points_by_payer()
+        message = get_points_by_payer(transactions)
         return message, 200
     return "You have not added any transactions yet.", 400
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8000)
+    # runs app on port 8000, debug off
+    app.run(port=8000)
