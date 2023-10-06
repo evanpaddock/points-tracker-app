@@ -27,18 +27,17 @@ def spend_points(points_to_spend):
         if current_payer_points < points_to_spend:
             # Points for message are equal to the negative of points
             points_spent = -current_payer_points
+            # Remaining points = 0 since points being spent > current points
+            remainder = 0
             # Subtracts current points from points being spent
             points_to_spend -= current_payer_points
-            # Remining points = 0 since points being spend > current points
-            remainder = 0
-
         else:
             # All remaining points being spent are used up here so points for message is the opposite of it
             points_spent = -points_to_spend
-            # Should equal zero to end loop
+            # remainder to assign back to payer, points spent is negative
+            remainder = current_payer_points + points_spent
+            # Set points_to_spend to 0 to end the loop
             points_to_spend = 0
-            # remainder to assign back to payer
-            remainder = current_payer_points - points_to_spend
 
         transactions[index]["points"] = remainder
 
@@ -94,14 +93,13 @@ def welcome():
 # Route to add transactions
 @app.route("/add", methods=["POST"])
 def add():
-
     # Example Transactions to add
     # { "payer": "DANNON", "points": 300, "timestamp": "2022-10-31T10:00:00Z" }
     # { "payer": "UNILEVER", "points": 200, "timestamp": "2022-10-31T11:00:00Z" }
     # { "payer": "DANNON", "points": -200, "timestamp": "2022-10-31T15:00:00Z" }
     # { "payer": "MILLER COORS", "points": 10000, "timestamp": "2022-11-01T14:00:00Z" }
     # { "payer": "DANNON", "points": 1000, "timestamp": "2022-11-02T14:00:00Z" }
-    
+
     try:
         # Gets the data submitted in the add form
         data = json.loads(request.form["data"])
