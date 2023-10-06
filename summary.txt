@@ -19,3 +19,8 @@ ended up playing a major part in the frontend and backend programming. I believe
 there is no growth, so I tend to take on challenges where I can to foster my personal growth. This was my first time being in a leadership 
 position of a team of developers. It taught me how key communication is between team members and the importance of setting deadlines and delegating duties. 
 I say that because those were the biggest challenges my team faced in this project.
+
+P.S. In the app I ignored adding negative points. I know the document says "For any requirements not specified via an example, use your best judgment."
+and in an example it has "{ "payer": "DANNON", "points": -200, "timestamp": "2022-10-31T15:00:00Z" }" which causes the points to increase after spending.
+I felt this was not fitting and if this feature was to be added, for example, if a user receives more points then they were due, it could take off those points.
+The only problem is that with the way things are written, it does not make sense to add negative points, so I ignore those transactions.
