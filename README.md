@@ -14,7 +14,7 @@ Before you embark on your points-tracking adventure, make sure you have the foll
 1. **Clone the Repository (or Download the Code)**
 
    ```terminal
-   git clone https://github.com/your-username/points-tracker-app.git
+   git clone https://github.com/evanpaddock/points-tracker-app.git
    ```
 
 ## 🏃 Running the code
