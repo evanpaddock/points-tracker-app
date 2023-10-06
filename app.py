@@ -15,31 +15,35 @@ def spend_points(points_to_spend):
 
     total_points -= points_to_spend
 
-    message = []
-    transactions_copy = transactions
-    for item in transactions_copy:
-        item["timestamp"] = datetime.strptime(item["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
+    transactions.sort(key=itemgetter("timestamp"))
 
-    transactions_sorted_by_timestamp = sorted(
-        transactions_copy, key=itemgetter("timestamp")
-    )
+    message = []
 
     index = 0
 
     while points_to_spend != 0:
-        payer_points = transactions_sorted_by_timestamp[index]["points"]
-        payer = transactions_sorted_by_timestamp[index]["payer"]
-        if payer_points < points_to_spend:
-            remainder = payer_points - points_to_spend
-            points = -transactions_sorted_by_timestamp[index]["points"]
-        else:
-            points = -points_to_spend
-            points_to_spend -= payer_points
+        current_payer_points = transactions[index]["points"]
+        current_payer = transactions[index]["payer"]
+        if current_payer_points < points_to_spend:
+            # Points for message are equal to the negative of points
+            points_spent = -current_payer_points
+            # Subtracts current points from points being spent
+            points_to_spend -= current_payer_points
+            # Remining points = 0 since points being spend > current points
             remainder = 0
 
-        message.append({"payer": payer, "points": points})
+        else:
+            # All remaining points being spent are used up here so points for message is the opposite of it
+            points_spent = -points_to_spend
+            # Should equal zero to end loop
+            points_to_spend = 0
+            # remainder to assign back to payer
+            remainder = current_payer_points - points_to_spend
 
-        transactions_sorted_by_timestamp[index]["points"] = remainder
+        transactions[index]["points"] = remainder
+
+        message.append({"payer": current_payer, "points": points_spent})
+
         index += 1
 
     return message
@@ -47,31 +51,36 @@ def spend_points(points_to_spend):
 
 def add_points(payer, points_to_add, timestamp):
     global total_points
+    # Adds new transaction to total points
     total_points += points_to_add
 
+    # adds the new transaction
     transactions.append(
         {"payer": payer, "points": points_to_add, "timestamp": timestamp}
     )
 
 
 def get_points_by_payer():
-    transactions_by_payers = sorted(transactions, key=itemgetter("payer"))
+    global transactions
+    transactions.sort(key=itemgetter("payer"))
     points_by_payer = []
 
-    payer = transactions_by_payers[0]["payer"]
-    points = transactions_by_payers[0]["points"]
+    current_payer = transactions[0]["payer"]
+    current_total_points = transactions[0]["points"]
     index = 1
 
-    while index < len(transactions_by_payers):
-        if payer == transactions_by_payers[index]["payer"]:
-            points += transactions_by_payers[index]["points"]
+    while index < len(transactions):
+        if current_payer == transactions[index]["payer"]:
+            current_total_points += transactions[index]["points"]
         else:
-            points_by_payer.append({"payer": payer, "points": points})
-            payer = transactions_by_payers[index]["payer"]
-            points = transactions_by_payers[index]["points"]
+            points_by_payer.append(
+                {"payer": current_payer, "points": current_total_points}
+            )
+            current_payer = transactions[index]["payer"]
+            current_total_points = transactions[index]["points"]
         index += 1
 
-    points_by_payer.append({"payer": payer, "points": points})
+    points_by_payer.append({"payer": current_payer, "points": current_total_points})
 
     return points_by_payer
 
@@ -85,11 +94,22 @@ def welcome():
 # Route to add transactions
 @app.route("/add", methods=["POST"])
 def add():
+
+    # Example Transactions to add
+    # { "payer": "DANNON", "points": 300, "timestamp": "2022-10-31T10:00:00Z" }
+    # { "payer": "UNILEVER", "points": 200, "timestamp": "2022-10-31T11:00:00Z" }
+    # { "payer": "DANNON", "points": -200, "timestamp": "2022-10-31T15:00:00Z" }
+    # { "payer": "MILLER COORS", "points": 10000, "timestamp": "2022-11-01T14:00:00Z" }
+    # { "payer": "DANNON", "points": 1000, "timestamp": "2022-11-02T14:00:00Z" }
+    
     try:
-        data = json.loads(request.form["text"])
+        # Gets the data submitted in the add form
+        data = json.loads(request.form["data"])
+
+        # gets the different items needed to add a transactions and parses them into the needed format for the system to use.
         payer = data["payer"]
         points = int(data["points"])
-        timestamp = data["timestamp"]
+        timestamp = datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
 
         if points > 0:
             add_points(payer, points, timestamp)
@@ -104,7 +124,7 @@ def add():
 def spend():
     global total_points
     try:
-        data = json.loads(request.form["text"])
+        data = json.loads(request.form["data"])
 
         points = data["points"]
         if points > total_points:
@@ -119,8 +139,10 @@ def spend():
 # Route to spend points
 @app.route("/balance", methods=["GET"])
 def balance():
-    message = get_points_by_payer()
-    return message, 200
+    if len(transactions) != 0:
+        message = get_points_by_payer()
+        return message, 200
+    return "You have not added any transactions yet.", 400
 
 
 if __name__ == "__main__":

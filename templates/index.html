@@ -12,24 +12,63 @@
     />
   </head>
   <body>
-    <form method="POST" action="/add">
-      <label for="text">Add Data</label>
-      <input type="text" id="text" name="text" required />
-      <br />
-      <button type="submit">Submit</button>
-    </form>
-    <br />
-    <form method="POST" action="/spend">
-      <label for="text">Spend Data</label>
-      <input type="text" id="text" name="text" required />
-      <br />
-      <button type="submit">Submit</button>
-    </form>
-    <br />
-    <form method="GET" action="/balance">
-      <button type="submit">Get Balance</button>
-    </form>
-    <br />
+    <div class="jumbotron">
+      <div class="container">
+        <h1 class="display-3">Fetch Points Tracker</h1>
+        <p>
+          Welcome to the Fetch Points Tracker! This will help you keep up with
+          your reward points. Start by adding some points and then feel free to
+          spend points. Remember, you can't spend more points than you currently
+          have. You can check your balance at any time with the "Get Balance"
+          button.
+        </p>
+      </div>
+    </div>
+    <main role="main">
+      <div class="container">
+        <form method="POST" action="/add">
+          <div class="mb-3 mt-3">
+            <label for="add-data-form" class="form-label">Add Points</label>
+            <input
+              required
+              name="data"
+              type="text"
+              class="form-control"
+              id="add-data-form"
+              aria-describedby="add-data"
+            />
+            <div id="add-data" class="form-text">
+              Enter in format similar to "{ "payer": "DANNON", "points": 300,
+              "timestamp": "2022-10-31T10:00:00Z" }"
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <form method="POST" action="/spend">
+          <div class="mb-3 mt-3">
+            <label for="spend-data-form" class="form-label">Spend Points</label>
+            <input
+              required
+              name="data"
+              type="text"
+              class="form-control"
+              id="spend-data-form"
+              aria-describedby="spend-data"
+            />
+            <div id="spend-data" class="form-text">
+              Enter in format similar to "{ "points": 5000 }"
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <form method="GET" action="/balance">
+          <div class="mb-3 mt-3">
+            <div>Click here to see your current balance!</div>
+            <button type="submit" class="btn btn-primary">Get Balance</button>
+          </div>
+        </form>
+      </div>
+    </main>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"

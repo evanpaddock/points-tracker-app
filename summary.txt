@@ -1,0 +1,6 @@
+1. Why did you choose the tools, libraries, and language you used for the coding exercise?
+I chose Python as my language. I have more experience with full stack web developement using c# for the backend, but since 
+it was not necessarily listed (most similar to Java), I took the safe route. Also, I am learning Python currently for data
+science purposes, so I wanted to challenge myself to apply my knowledge of building c# apis to learn how to use Flask to 
+build a simple Python web app. Flask was perfect for this because it is a microframework for web applications. 
+I chose to use itemgetter because it is easier to read then a lambda function when sorting. 
